@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>UX Handoff — CJ Inmuebles / PrestaPrenda</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-page:#F0E8F5;--bg-app:#fff;--bg-sidebar:#F9F9F9;--bg-muted:#F4F4F4;
+  --border:#EBEBEB;--border-h:#D0D0D0;
+  --tp:#1A1A1A;--tb:#3D3D3D;--tm:#9B9B9B;
+  --green:#22A04B;--red:#D44C4C;--amber:#C2620A;--blue:#2563EB;--purple:#8B5CF6;
+  --font:'DM Sans',system-ui,sans-serif;
+  --ra:20px;--rc:12px;--rp:20px;--rb:8px;
+}
+body{font-family:var(--font);background:var(--bg-page);min-height:100vh;padding:32px 16px;color:var(--tb);}
+.app{max-width:980px;margin:0 auto;background:var(--bg-app);border-radius:var(--ra);display:flex;overflow:hidden;min-height:calc(100vh - 64px);}
+
+/* SIDEBAR */
+.sidebar{width:64px;background:var(--bg-sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:20px 0;flex-shrink:0;}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--tp);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;margin-bottom:24px;}
+.nav-icons{display:flex;flex-direction:column;gap:4px;flex:1;}
+.nav-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--tm);transition:all .15s;}
+.nav-icon:hover{background:var(--border);}
+.nav-icon.active{background:var(--tp);color:#fff;}
+.nav-icon svg{width:18px;height:18px;}
+.sidebar-bottom{display:flex;flex-direction:column;gap:4px;}
+
+/* MAIN */
+.main{flex:1;padding:32px 36px;overflow-y:auto;min-width:0;}
+
+/* EDIT TOGGLE */
+.edit-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-muted);border-radius:var(--rc);margin-bottom:24px;border:1px solid var(--border);}
+.edit-bar-left{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--tm);}
+.edit-indicator{width:8px;height:8px;border-radius:50%;background:var(--border);}
+.edit-indicator.on{background:var(--green);}
+.edit-btn{font-size:12px;font-weight:500;padding:7px 16px;border-radius:var(--rb);cursor:pointer;font-family:var(--font);border:1px solid var(--border);background:#fff;color:var(--tp);transition:all .15s;}
+.edit-btn:hover{background:var(--bg-muted);}
+.edit-btn.active{background:var(--tp);color:#fff;border-color:var(--tp);}
+.save-btn{font-size:12px;font-weight:500;padding:7px 16px;border-radius:var(--rb);cursor:pointer;font-family:var(--font);border:1px solid #22A04B;background:#D6F5E0;color:#22A04B;display:none;transition:all .15s;margin-left:6px;}
+.save-btn:hover{background:#22A04B;color:#fff;}
+
+/* EDITABLE */
+[contenteditable]{outline:none;border-radius:4px;transition:background .15s;}
+[contenteditable]:focus{background:#FFFBF0;box-shadow:0 0 0 2px #EF9F2744;}
+.editing [contenteditable]{background:#FFFDE8;cursor:text;}
+.editing [contenteditable]:hover{background:#FFF8D6;}
+.edit-hint{display:none;font-size:10px;color:var(--tm);font-style:italic;margin-top:4px;}
+.editing .edit-hint{display:block;}
+
+/* HEADER */
+.doc-header{margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--border);}
+.doc-badge{display:inline-flex;align-items:center;gap:5px;background:var(--bg-muted);color:var(--tb);font-size:11px;font-weight:500;padding:3px 10px;border-radius:var(--rp);margin-bottom:8px;}
+.doc-title{font-size:24px;font-weight:600;color:var(--tp);line-height:1.2;margin-bottom:5px;}
+.doc-desc{font-size:13px;color:var(--tm);margin-bottom:14px;line-height:1.6;}
+.meta-row{display:flex;flex-wrap:wrap;gap:6px;}
+.meta-chip{font-size:11px;padding:3px 10px;border-radius:var(--rp);background:var(--bg-muted);color:var(--tb);}
+.meta-chip span{color:var(--tm);margin-right:3px;}
+
+/* SECTION */
+.section{margin-bottom:36px;}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:6px;}
+.section-label{font-size:11px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:8px;}
+.section-count{font-size:10px;background:var(--bg-muted);color:var(--tm);padding:1px 7px;border-radius:var(--rp);font-weight:500;}
+.section-ts{font-size:11px;color:var(--tm);font-style:italic;}
+
+/* CARDS */
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--rc);padding:14px 16px;transition:border-color .15s;}
+.card:hover{border-color:var(--border-h);}
+.card+.card{margin-top:8px;}
+.card-label{font-size:11px;font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.card-value{font-size:13px;color:var(--tb);line-height:1.7;}
+.card-value a{color:#2563EB;text-decoration:none;} .card-value a:hover{text-decoration:underline;}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 10px;border-radius:var(--rp);white-space:nowrap;}
+.b-green{background:#D6F5E0;color:#22A04B;} .b-amber{background:#FFE8CC;color:#C2620A;}
+.b-red{background:#FFD6D6;color:#D44C4C;} .b-blue{background:#D6EEFF;color:#2563EB;}
+.b-purple{background:#E8D6FF;color:#8B5CF6;} .b-gray{background:#F4F4F4;color:#9B9B9B;}
+
+/* LIST CARD */
+.list-card{background:#fff;border:1px solid var(--border);border-radius:var(--rc);overflow:hidden;}
+.list-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #F4F4F4;transition:background .1s;}
+.list-row:last-child{border-bottom:none;}
+.list-row:hover{background:#FAFAFA;}
+.lr-title{flex:1;font-size:13px;color:var(--tp);font-weight:500;line-height:1.4;}
+.lr-sub{font-size:11px;color:var(--tm);white-space:nowrap;}
+
+/* DELETE BTN */
+.del-btn{display:none;width:22px;height:22px;border-radius:50%;border:none;background:#FFD6D6;color:#D44C4C;font-size:13px;cursor:pointer;flex-shrink:0;align-items:center;justify-content:center;font-weight:600;line-height:1;}
+.editing .del-btn{display:flex;}
+.del-btn:hover{background:#D44C4C;color:#fff;}
+
+/* ADD ROW */
+.add-row{display:none;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.editing .add-row{display:flex;}
+.add-input{flex:1;min-width:120px;font-size:12px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--rb);background:#fff;color:var(--tp);font-family:var(--font);}
+.add-input::placeholder{color:#BBBBBB;}
+.add-select{font-size:12px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--rb);background:#fff;color:var(--tp);font-family:var(--font);}
+.add-action{font-size:12px;font-weight:500;padding:7px 14px;border:1px solid var(--border);border-radius:var(--rb);background:#fff;color:var(--tp);cursor:pointer;font-family:var(--font);white-space:nowrap;}
+.add-action:hover{background:var(--bg-muted);}
+
+/* PERSON CARD */
+.person-card{background:#fff;border:1px solid var(--border);border-radius:var(--rc);overflow:hidden;transition:border-color .15s;position:relative;}
+.person-card:hover{border-color:var(--border-h);}
+.person-top{padding:14px 14px 10px;display:flex;align-items:center;gap:10px;}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;}
+.person-name{font-size:13px;font-weight:600;color:var(--tp);}
+.person-role{font-size:11px;color:var(--tm);margin-top:1px;}
+.person-divider{height:1px;background:var(--border);}
+.person-rows{padding:10px 14px;display:flex;flex-direction:column;gap:6px;}
+.person-row{display:flex;gap:8px;}
+.person-key{font-size:11px;color:var(--tm);min-width:72px;flex-shrink:0;padding-top:1px;}
+.person-val{font-size:12px;color:var(--tb);line-height:1.45;}
+.card-del{position:absolute;top:8px;right:8px;display:none;}
+.editing .card-del{display:flex;}
+
+/* VOICE */
+.voice-card{background:#fff;border:1px solid var(--border);border-radius:var(--rc);padding:14px;position:relative;}
+.voice-adj{font-size:15px;font-weight:600;color:var(--tp);margin-bottom:10px;}
+.voice-row{display:flex;gap:8px;align-items:baseline;margin-bottom:6px;}
+.vtag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:var(--rp);flex-shrink:0;}
+.vtag-si{background:#D6F5E0;color:#22A04B;} .vtag-no{background:#FFD6D6;color:#D44C4C;}
+.voice-ex{font-size:12px;color:var(--tb);line-height:1.5;}
+
+/* TONE */
+.tone-card{background:var(--bg-muted);border-radius:var(--rc);padding:12px 14px;}
+.tone-ctx{font-size:10px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+.tone-desc{font-size:12px;color:var(--tb);line-height:1.6;}
+
+/* GLOSSARY */
+.glossary-table{width:100%;border-collapse:collapse;font-size:12px;}
+.glossary-table th{text-align:left;font-size:10px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:.05em;padding:8px 12px;border-bottom:1px solid var(--border);}
+.glossary-table td{padding:8px 12px;border-bottom:1px solid #F4F4F4;vertical-align:top;}
+.glossary-table tr:last-child td{border-bottom:none;}
+.term-use{color:#22A04B;font-weight:600;} .term-avoid{color:#D44C4C;text-decoration:line-through;} .term-note{color:var(--tm);}
+
+/* AGREEMENT */
+.ag-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-bottom:1px solid #F4F4F4;position:relative;}
+.ag-item:last-child{border-bottom:none;}
+.ag-bar{width:3px;border-radius:2px;flex-shrink:0;align-self:stretch;margin-top:2px;}
+.ag-body{flex:1;}
+.ag-title{font-size:13px;font-weight:600;color:var(--tp);margin-bottom:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ag-detail{font-size:12px;color:var(--tm);line-height:1.55;}
+
+/* TASK */
+.task-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #F4F4F4;}
+.task-row:last-child{border-bottom:none;}
+.pdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.task-text{flex:1;font-size:13px;color:var(--tp);line-height:1.4;}
+.task-type{font-size:10px;font-weight:600;padding:2px 8px;border-radius:var(--rp);}
+.task-check{width:18px;height:18px;border-radius:4px;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;background:#fff;transition:all .15s;}
+.task-check.done{background:#22A04B;border-color:#22A04B;color:#fff;}
+
+/* STATUS SELECT */
+.status-select{font-size:11px;font-weight:600;padding:2px 8px;border-radius:var(--rp);border:none;cursor:pointer;font-family:var(--font);appearance:none;display:none;}
+.editing .status-select{display:inline-flex;}
+.editing .status-badge{display:none;}
+
+/* NOTIFY */
+.notify{position:fixed;bottom:24px;right:24px;background:var(--tp);color:#fff;font-size:12px;padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:100;}
+.notify.show{opacity:1;}
+
+/* PASSWORD MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.show{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:16px;padding:28px 28px 24px;width:340px;max-width:90vw;display:flex;flex-direction:column;gap:14px;}
+.modal-title{font-size:15px;font-weight:600;color:var(--tp);}
+.modal-desc{font-size:12px;color:var(--tm);line-height:1.6;}
+.modal-input{height:40px;border:1px solid var(--border);border-radius:var(--rb);padding:0 12px;font-size:13px;font-family:var(--font);color:var(--tp);width:100%;outline:none;}
+.modal-input:focus{border-color:#2563EB;box-shadow:0 0 0 2px #2563EB22;}
+.modal-input.error{border-color:#D44C4C;box-shadow:0 0 0 2px #D44C4C22;}
+.modal-error{font-size:11px;color:#D44C4C;display:none;}
+.modal-error.show{display:block;}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;}
+.modal-cancel{font-size:12px;padding:8px 16px;border:1px solid var(--border);border-radius:var(--rb);background:#fff;color:var(--tb);cursor:pointer;font-family:var(--font);}
+.modal-confirm{font-size:12px;font-weight:500;padding:8px 16px;border:1px solid var(--tp);border-radius:var(--rb);background:var(--tp);color:#fff;cursor:pointer;font-family:var(--font);}
+.modal-cancel:hover{background:var(--bg-muted);}
+.modal-confirm:hover{background:#333;}
+
+/* KV STATUS */
+.kv-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;margin-left:6px;}
+.kv-synced{background:#D6F5E0;color:#22A04B;}
+.kv-saving{background:#D6EEFF;color:#2563EB;}
+.kv-local{background:#FFE8CC;color:#C2620A;}
+.kv-error{background:#FFD6D6;color:#D44C4C;}
+
+/* FOOTER */
+.doc-footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.progress-label{font-size:11px;color:var(--tm);margin-bottom:6px;}
+.progress-bar{display:flex;gap:4px;}
+.pb{height:4px;width:46px;border-radius:2px;}
+.pb-on{background:var(--tp);} .pb-off{background:var(--border);}
+.footer-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.foot-btn{font-size:12px;font-weight:500;padding:8px 18px;border:1px solid var(--border);border-radius:var(--rb);background:#fff;color:var(--tb);cursor:pointer;font-family:var(--font);transition:background .15s;}
+.foot-btn:hover{background:var(--bg-muted);}
+.foot-btn.primary{background:var(--tp);color:#fff;border-color:var(--tp);}
+.foot-btn.primary:hover{background:#333;}
+
+.note{font-size:12px;color:var(--tm);font-style:italic;margin-bottom:10px;line-height:1.6;}
+
+@media(max-width:640px){.sidebar{display:none;}.main{padding:20px 18px;}.g2,.g3,.g4{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">CJ</div>
+    <nav class="nav-icons">
+      <div class="nav-icon active" title="One Pager" onclick="scrollTo(0,0)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      </div>
+      <div class="nav-icon" title="Perfiles" onclick="scrollToSection('s-perfiles')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a7 7 0 0 1 14 0v2"/><circle cx="19" cy="11" r="2.5"/><path d="M22 20v-1a4 4 0 0 0-4-4h-.5"/></svg>
+      </div>
+      <div class="nav-icon" title="Flujos" onclick="scrollToSection('s-flujos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="5" height="4" rx="1"/><rect x="16" y="3" width="5" height="4" rx="1"/><rect x="9.5" y="17" width="5" height="4" rx="1"/><path d="M5.5 7v4h13V7M12 11v6"/></svg>
+      </div>
+      <div class="nav-icon" title="Acuerdos" onclick="scrollToSection('s-acuerdos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <div class="nav-icon" title="Backlog" onclick="scrollToSection('s-backlog')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="14" y2="18"/></svg>
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="nav-icon" title="Exportar" onclick="window.print()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+
+    <!-- EDIT BAR -->
+    <div class="edit-bar">
+      <div class="edit-bar-left">
+        <div class="edit-indicator" id="edit-dot"></div>
+        <span id="edit-status">Modo lectura</span>
+        <span class="kv-badge kv-local" id="kv-badge">⟳ Cargando...</span>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span id="last-saved" style="font-size:11px;color:var(--tm);display:none;"></span>
+        <button class="edit-btn" id="toggle-edit-btn" onclick="requestEdit()">✏️ Editar</button>
+        <button class="save-btn" id="save-btn" onclick="saveContent()">✓ Guardar para todos</button>
+      </div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="doc-header">
+      <div class="doc-badge">SaaS / App web · Fintech</div>
+      <div class="doc-title" contenteditable="false">CJ Inmuebles — PrestaPrenda</div>
+      <div class="doc-desc" contenteditable="false">Plataforma de préstamos con inmueble en garantía, respaldada por Banco Azteca. Montos más altos, plazos más largos, sin complicaciones.</div>
+      <div class="meta-row">
+        <span class="meta-chip"><span>Versión</span><span contenteditable="false">v1.0 — Cotizador</span></span>
+        <span class="meta-chip"><span>Fecha</span><span contenteditable="false">Abril 2026</span></span>
+        <span class="meta-chip"><span>Autora</span><span contenteditable="false">Yazme González</span></span>
+        <span class="meta-chip"><span>Equipo receptor</span><span contenteditable="false">UX Entrante</span></span>
+        <span class="meta-chip"><span>Product Owner</span><span contenteditable="false">Katia Vilorio</span></span>
+      </div>
+    </div>
+
+    <!-- S1 CONTEXTO -->
+    <div class="section">
+      <div class="section-hdr">
+        <div class="section-label">1 · Contexto de negocio <span class="section-count">Banco Azteca</span></div>
+        <span class="section-ts" contenteditable="false">Actualizado: abril 2026 · Yazme González</span>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="card-label">Problema que resuelve</div><div class="card-value" contenteditable="false">Personas con inmueble propio que necesitan liquidez importante sin tener que vender su patrimonio. Los préstamos tradicionales no ofrecen montos altos ni plazos largos accesibles.</div></div>
+        <div class="card"><div class="card-label">Segmento de usuario primario</div><div class="card-value" contenteditable="false">Propietarios de inmuebles en México (casa, departamento o local comercial) que buscan financiamiento para crecer su negocio, invertir, estudiar o alcanzar metas de vida. Prioridad: emprendedores y empresarios.</div></div>
+      </div>
+      <div class="g4" style="margin-top:10px">
+        <div class="card"><div class="card-label">Tasa desde</div><div class="card-value" style="font-size:16px;font-weight:600;color:var(--tp)" contenteditable="false">28% sin IVA</div></div>
+        <div class="card"><div class="card-label">CAT promedio</div><div class="card-value" style="font-size:16px;font-weight:600;color:var(--tp)" contenteditable="false">30% sin IVA</div></div>
+        <div class="card"><div class="card-label">Monto mínimo</div><div class="card-value" style="font-size:16px;font-weight:600;color:var(--tp)" contenteditable="false">$200,000</div></div>
+        <div class="card"><div class="card-label">Monto máximo</div><div class="card-value" style="font-size:16px;font-weight:600;color:var(--tp)" contenteditable="false">$1,000,000 <span style="font-size:11px;font-weight:400;color:var(--tm)">(paramétrico)</span></div></div>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <div class="card-label">Respaldo y canal</div>
+        <div class="card-value" contenteditable="false">Banco Azteca · Landing web + cotizador digital + mensajería WhatsApp (proveedor: Yalo) · Comisión apertura: 2.5% + IVA · Gastos notariales: ~2% del valor del inmueble</div>
+      </div>
+    </div>
+
+    <!-- S2 PERFILES -->
+    <div class="section" id="s-perfiles">
+      <div class="section-hdr">
+        <div class="section-label">2 · Perfiles de usuario <span class="section-count" id="count-perfiles">6</span></div>
+        <span class="section-ts" contenteditable="false">Actualizado: abril 2026 · Yazme González</span>
+      </div>
+      <div class="g2" id="perfiles-grid">
+        <div class="person-card">
+          <button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-perfiles')">×</button>
+          <div class="person-top"><div class="avatar" style="background:#FFD6D6;color:#D44C4C">FR</div><div><div class="person-name" contenteditable="false">Francisco</div><div class="person-role" contenteditable="false">Empresario</div></div></div>
+          <div class="person-divider"></div>
+          <div class="person-rows">
+            <div class="person-row"><span class="person-key">Necesidad</span><span class="person-val" contenteditable="false">Capital para expandir sin vender activos</span></div>
+            <div class="person-row"><span class="person-key">Cita real</span><span class="person-val" style="font-style:italic;color:var(--tm)" contenteditable="false">"Mi negocio sigue creciendo y mi hijo estudia en el extranjero"</span></div>
+            <div class="person-row"><span class="person-key">Inmueble</span><span class="person-val" contenteditable="false">Local comercial propio</span></div>
+          </div>
+        </div>
+        <div class="person-card">
+          <button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-perfiles')">×</button>
+          <div class="person-top"><div class="avatar" style="background:#E8D6FF;color:#8B5CF6">NO</div><div><div class="person-name" contenteditable="false">Nora</div><div class="person-role" contenteditable="false">Emprendedora</div></div></div>
+          <div class="person-divider"></div>
+          <div class="person-rows">
+            <div class="person-row"><span class="person-key">Necesidad</span><span class="person-val" contenteditable="false">Montar negocio propio (salón de belleza)</span></div>
+            <div class="person-row"><span class="person-key">Cita real</span><span class="person-val" style="font-style:italic;color:var(--tm)" contenteditable="false">"Pedí un préstamo por la casa de mi mamá, las dos somos autosuficientes"</span></div>
+            <div class="person-row"><span class="person-key">Inmueble</span><span class="person-val" contenteditable="false">Casa familiar</span></div>
+          </div>
+        </div>
+        <div class="person-card">
+          <button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-perfiles')">×</button>
+          <div class="person-top"><div class="avatar" style="background:#D6EEFF;color:#2563EB">AD</div><div><div class="person-name" contenteditable="false">Adán</div><div class="person-role" contenteditable="false">Emprendedor</div></div></div>
+          <div class="person-divider"></div>
+          <div class="person-rows">
+            <div class="person-row"><span class="person-key">Necesidad</span><span class="person-val" contenteditable="false">Liquidez para materia prima y escalar producción</span></div>
+            <div class="person-row"><span class="person-key">Cita real</span><span class="person-val" style="font-style:italic;color:var(--tm)" contenteditable="false">"Me ayuda a obtener liquidez para invertir y conseguir más clientes"</span></div>
+            <div class="person-row"><span class="person-key">Inmueble</span><span class="person-val" contenteditable="false">Inmueble propio</span></div>
+          </div>
+        </div>
+        <div class="person-card">
+          <button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-perfiles')">×</button>
+          <div class="person-top"><div class="avatar" style="background:#D6F5E0;color:#22A04B">ER</div><div><div class="person-name" contenteditable="false">Eric</div><div class="person-role" contenteditable="false">Comerciante</div></div></div>
+          <div class="person-divider"></div>
+          <div class="person-rows">
+            <div class="person-row"><span class="person-key">Necesidad</span><span class="person-val" contenteditable="false">Capital para local en mercado y mercancía</span></div>
+            <div class="person-row"><span class="person-key">Cita real</span><span class="person-val" style="font-style:italic;color:var(--tm)" contenteditable="false">"Me explicaron todo claramente y me ayudaron"</span></div>
+            <div class="person-row"><span class="person-key">Inmueble</span><span class="person-val" contenteditable="false">Propiedad propia</span></div>
+          </div>
+        </div>
+        <div class="person-card">
+          <button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-perfiles')">×</button>
+          <div class="person-top"><div class="avatar" style="background:#FFE8CC;color:#C2620A">SO</div><div><div class="person-name" contenteditable="false">Sonia</div><div class="person-role" contenteditable="false">Estudiante</div></div></div>
+          <div class="person-divider"></div>
+          <div class="person-rows">
+            <div class="person-row"><span class="person-key">Necesidad</span><span class="person-val" contenteditable="false">Financiar maestría en el extranjero (Japón)</span></div>
+            <div class="person-row"><span class="person-key">Cita real</span><span class="person-val" style="font-style:italic;color:var(--tm)" contenteditable="false">"Es increíble cómo facilitaron los procesos"</span></div>
+            <div class="person-row"><span class="person-key">Inmueble</span><span class="person-val" contenteditable="false">Departamento propio</span></div>
+          </div>
+        </div>
+        <div class="person-card">
+          <button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-perfiles')">×</button>
+          <div class="person-top"><div class="avatar" style="background:#F4F4F4;color:#9B9B9B">MA</div><div><div class="person-name" contenteditable="false">Maribel</div><div class="person-role" contenteditable="false">Empleada</div></div></div>
+          <div class="person-divider"></div>
+          <div class="person-rows">
+            <div class="person-row"><span class="person-key">Necesidad</span><span class="person-val" contenteditable="false">Meta de vida: boda y luna de miel en crucero</span></div>
+            <div class="person-row"><span class="person-key">Cita real</span><span class="person-val" style="font-style:italic;color:var(--tm)" contenteditable="false">"Con PrestaPrenda se hizo posible. Sin duda la mejor elección"</span></div>
+            <div class="person-row"><span class="person-key">Inmueble</span><span class="person-val" contenteditable="false">Inmueble en garantía</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="add-row" id="add-perfil-row">
+        <input class="add-input" id="in-perfil-nombre" placeholder="Nombre del perfil..."/>
+        <input class="add-input" id="in-perfil-rol" placeholder="Rol (ej: Emprendedor)..."/>
+        <button class="add-action" onclick="addPerfil()">+ Agregar perfil</button>
+      </div>
+    </div>
+
+    <!-- S3 RESEARCH -->
+    <div class="section">
+      <div class="section-hdr">
+        <div class="section-label">3 · Repositorio de investigación</div>
+        <span class="section-ts" contenteditable="false">Actualizado: abril 2026 · Yazme González</span>
+      </div>
+      <div class="list-card" id="research-list">
+        <div class="list-row"><span class="badge b-red">Sesión alineación</span><span class="lr-title" contenteditable="false">Revisión del flujo cotizador — Landing, 5 pasos, FAQ y footer</span><span class="lr-sub" contenteditable="false">Mar 2026</span><button class="del-btn" onclick="this.closest('.list-row').remove()">×</button></div>
+        <div class="list-row"><span class="badge b-purple">Validación DS</span><span class="lr-title" contenteditable="false">Revisión Design System PrestaPrenda 2.0 — inputs, estados, iconografía</span><span class="lr-sub" contenteditable="false">Mar 2026</span><button class="del-btn" onclick="this.closest('.list-row').remove()">×</button></div>
+        <div class="list-row"><span class="badge b-blue">Reglas de negocio</span><span class="lr-title" contenteditable="false">Alineación con Katia Vilorio — montos, tasas, catálogos, depósito</span><span class="lr-sub" contenteditable="false">Mar 2026</span><button class="del-btn" onclick="this.closest('.list-row').remove()">×</button></div>
+        <div class="list-row"><span class="badge b-green">Mensajería WA</span><span class="lr-title" contenteditable="false">Sesión con Christian (Yalo) — OTP, templates, URLs, comportamiento botones</span><span class="lr-sub" contenteditable="false">Mar 2026</span><button class="del-btn" onclick="this.closest('.list-row').remove()">×</button></div>
+        <div class="list-row"><span class="badge b-amber">Testimonios</span><span class="lr-title" contenteditable="false">6 perfiles de usuario reales documentados desde testimoniales del producto</span><span class="lr-sub" contenteditable="false">2025–2026</span><button class="del-btn" onclick="this.closest('.list-row').remove()">×</button></div>
+      </div>
+      <div class="add-row" id="add-research-row">
+        <input class="add-input" id="in-research-titulo" placeholder="Nombre del estudio o sesión..."/>
+        <input class="add-input" id="in-research-fecha" placeholder="Fecha (ej: Abr 2026)" style="max-width:130px"/>
+        <select class="add-select" id="in-research-tipo">
+          <option value="b-red">Sesión</option>
+          <option value="b-purple">Validación DS</option>
+          <option value="b-blue">Reglas negocio</option>
+          <option value="b-green">WA / Tech</option>
+          <option value="b-amber">Research</option>
+        </select>
+        <button class="add-action" onclick="addResearch()">+ Agregar</button>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <div class="card-label">Hallazgos clave para el equipo entrante</div>
+        <div class="card-value" contenteditable="false">1. El usuario valora la rapidez y simplicidad — el copy "sin trámites complicados" es un diferenciador central.<br>2. Los perfiles son muy diversos pero tienen en común: tienen un inmueble y necesitan liquidez ahora.<br>3. La validación OTP por WhatsApp genera fricción — monitorear tasas de abandono en el paso 2.<br>4. El DS PrestaPrenda 2.0 tiene inconsistencias con pantallas legacy — revisar sección de acuerdos antes de diseñar nuevas pantallas.</div>
+      </div>
+    </div>
+
+    <!-- S4 FLUJOS -->
+    <div class="section" id="s-flujos">
+      <div class="section-hdr">
+        <div class="section-label">4 · Flujos principales <span class="section-count">Todo el flujo hasta firma</span></div>
+        <span class="section-ts" contenteditable="false">Actualizado: abril 2026 · Yazme González</span>
+      </div>
+      <div class="g3" id="flujos-grid">
+        <div class="card" style="position:relative"><button class="del-btn card-del" onclick="this.closest('.card').remove()">×</button><div style="font-size:13px;font-weight:600;color:var(--tp);margin-bottom:6px" contenteditable="false">Landing</div><span class="badge b-green status-badge">Documentado</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green">Documentado</option><option value="b-blue">En revisión</option><option value="b-amber">Pendiente</option></select><div style="font-size:11px;color:var(--tm);margin-top:5px" contenteditable="false">Hero, carrusel de 5 pasos, FAQ, footer</div></div>
+        <div class="card" style="position:relative"><button class="del-btn card-del" onclick="this.closest('.card').remove()">×</button><div style="font-size:13px;font-weight:600;color:var(--tp);margin-bottom:6px" contenteditable="false">Cotizador — Paso 1</div><span class="badge b-green status-badge">Documentado</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green">Documentado</option><option value="b-blue">En revisión</option><option value="b-amber">Pendiente</option></select><div style="font-size:11px;color:var(--tm);margin-top:5px" contenteditable="false">Datos del inmueble</div></div>
+        <div class="card" style="position:relative"><button class="del-btn card-del" onclick="this.closest('.card').remove()">×</button><div style="font-size:13px;font-weight:600;color:var(--tp);margin-bottom:6px" contenteditable="false">Cotizador — Paso 2</div><span class="badge b-green status-badge">Documentado</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green">Documentado</option><option value="b-blue">En revisión</option><option value="b-amber">Pendiente</option></select><div style="font-size:11px;color:var(--tm);margin-top:5px" contenteditable="false">Datos personales + OTP WA</div></div>
+        <div class="card" style="position:relative"><button class="del-btn card-del" onclick="this.closest('.card').remove()">×</button><div style="font-size:13px;font-weight:600;color:var(--tp);margin-bottom:6px" contenteditable="false">Cotizador — Paso 3</div><span class="badge b-green status-badge">Documentado</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green">Documentado</option><option value="b-blue">En revisión</option><option value="b-amber">Pendiente</option></select><div style="font-size:11px;color:var(--tm);margin-top:5px" contenteditable="false">Carga de documentos</div></div>
+        <div class="card" style="position:relative"><button class="del-btn card-del" onclick="this.closest('.card').remove()">×</button><div style="font-size:13px;font-weight:600;color:var(--tp);margin-bottom:6px" contenteditable="false">Pre aprobado — Paso 4</div><span class="badge b-blue status-badge">En revisión</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green">Documentado</option><option value="b-blue" selected>En revisión</option><option value="b-amber">Pendiente</option></select><div style="font-size:11px;color:var(--tm);margin-top:5px" contenteditable="false">Agenda visita de avalúo</div></div>
+        <div class="card" style="position:relative"><button class="del-btn card-del" onclick="this.closest('.card').remove()">×</button><div style="font-size:13px;font-weight:600;color:var(--tp);margin-bottom:6px" contenteditable="false">Firma contrato — Paso 5</div><span class="badge b-blue status-badge">En revisión</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green">Documentado</option><option value="b-blue" selected>En revisión</option><option value="b-amber">Pendiente</option></select><div style="font-size:11px;color:var(--tm);margin-top:5px" contenteditable="false">Notario → depósito 28 días</div></div>
+        <div class="card" style="position:relative"><button class="del-btn card-del" onclick="this.closest('.card').remove()">×</button><div style="font-size:13px;font-weight:600;color:var(--tp);margin-bottom:6px" contenteditable="false">Simulador</div><span class="badge b-amber status-badge">Pendiente</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green">Documentado</option><option value="b-blue">En revisión</option><option value="b-amber" selected>Pendiente</option></select><div style="font-size:11px;color:var(--tm);margin-top:5px" contenteditable="false">Próxima sesión con Yazme</div></div>
+        <div class="card" style="position:relative"><button class="del-btn card-del" onclick="this.closest('.card').remove()">×</button><div style="font-size:13px;font-weight:600;color:var(--tp);margin-bottom:6px" contenteditable="false">Avalúo + Oferta final</div><span class="badge b-amber status-badge">Pendiente</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green">Documentado</option><option value="b-blue">En revisión</option><option value="b-amber" selected>Pendiente</option></select><div style="font-size:11px;color:var(--tm);margin-top:5px" contenteditable="false">Espera requerimiento originación</div></div>
+        <div class="card" style="position:relative"><button class="del-btn card-del" onclick="this.closest('.card').remove()">×</button><div style="font-size:13px;font-weight:600;color:var(--tp);margin-bottom:6px" contenteditable="false">Reenganche WA</div><span class="badge b-amber status-badge">Pendiente</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green">Documentado</option><option value="b-blue">En revisión</option><option value="b-amber" selected>Pendiente</option></select><div style="font-size:11px;color:var(--tm);margin-top:5px" contenteditable="false">Frecuencia por definir con originación</div></div>
+      </div>
+      <div class="add-row" id="add-flujo-row" style="margin-top:10px">
+        <input class="add-input" id="in-flujo-nombre" placeholder="Nombre del flujo..."/>
+        <select class="add-select" id="in-flujo-status"><option value="b-green">Documentado</option><option value="b-blue">En revisión</option><option value="b-amber">Pendiente</option></select>
+        <button class="add-action" onclick="addFlujo()">+ Agregar flujo</button>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <div class="card-label">Archivo de diseño — Figma</div>
+        <div class="card-value"><a href="https://www.figma.com/design/Stb4DRvkkvuXF2NG7hkF20/Inmuebles---Versi%C3%B3n-Editable-UIX?node-id=0-1&t=sPy8XwIeWHAFr49l-1" target="_blank">Inmuebles — Versión Editable UIX · Figma ↗</a><br><span style="font-size:11px;color:var(--tm)" contenteditable="false">Este archivo es editable. Design System: PrestaPrenda 2.0</span></div>
+      </div>
+    </div>
+
+    <!-- S5 UX WRITING -->
+    <div class="section">
+      <div class="section-hdr">
+        <div class="section-label">5 · UX Writing <span class="section-count">PrestaPrenda 2.0</span></div>
+        <span class="section-ts" contenteditable="false">Actualizado: abril 2026 · Yazme González</span>
+      </div>
+      <div class="card-label" style="margin-bottom:8px">Voz del producto</div>
+      <div class="g3" style="margin-bottom:16px">
+        <div class="voice-card"><button class="del-btn card-del" onclick="this.closest('.voice-card').remove()">×</button><div class="voice-adj" contenteditable="false">Cercano</div><div class="voice-row"><span class="vtag vtag-si">Sí</span><span class="voice-ex" contenteditable="false">"Te decimos cuánto vale tu inmueble"</span></div><div class="voice-row"><span class="vtag vtag-no">No</span><span class="voice-ex" contenteditable="false">"Se procederá a la estimación del valor del bien"</span></div></div>
+        <div class="voice-card"><button class="del-btn card-del" onclick="this.closest('.voice-card').remove()">×</button><div class="voice-adj" contenteditable="false">Claro</div><div class="voice-row"><span class="vtag vtag-si">Sí</span><span class="voice-ex" contenteditable="false">"Sin trámites complicados. Rápido y seguro."</span></div><div class="voice-row"><span class="vtag vtag-no">No</span><span class="voice-ex" contenteditable="false">"Proceso simplificado bajo normativa vigente"</span></div></div>
+        <div class="voice-card"><button class="del-btn card-del" onclick="this.closest('.voice-card').remove()">×</button><div class="voice-adj" contenteditable="false">Motivador</div><div class="voice-row"><span class="vtag vtag-si">Sí</span><span class="voice-ex" contenteditable="false">"Ya casi tienes el préstamo para concretar tus proyectos"</span></div><div class="voice-row"><span class="vtag vtag-no">No</span><span class="voice-ex" contenteditable="false">"Su solicitud se encuentra en proceso de revisión"</span></div></div>
+      </div>
+      <div class="card-label" style="margin-bottom:8px">Tono por contexto</div>
+      <div class="g4" style="margin-bottom:16px">
+        <div class="tone-card"><div class="tone-ctx">Landing / CTA</div><div class="tone-desc" contenteditable="false">Aspiracional y directo. El usuario tiene un sueño — el producto lo hace posible.</div></div>
+        <div class="tone-card"><div class="tone-ctx">Cotizador</div><div class="tone-desc" contenteditable="false">Guía paso a paso. Empático, nunca presionante. Explicar el por qué de cada dato.</div></div>
+        <div class="tone-card"><div class="tone-ctx">Error / OTP</div><div class="tone-desc" contenteditable="false">Empático y resolutivo. Nunca culpar al usuario. Dar siguiente paso claro.</div></div>
+        <div class="tone-card"><div class="tone-ctx">Pre aprobado</div><div class="tone-desc" contenteditable="false">Celebratorio pero contenido. "Ya casi" genera expectativa sin prometer.</div></div>
+      </div>
+      <div class="card-label" style="margin-bottom:8px">Glosario del producto</div>
+      <div class="list-card" style="margin-bottom:12px">
+        <table class="glossary-table" id="glossary-table">
+          <thead><tr><th>Usar</th><th>Evitar</th><th>Nota</th></tr></thead>
+          <tbody id="glossary-body">
+            <tr><td class="term-use" contenteditable="false">PrestaPrenda</td><td class="term-avoid" contenteditable="false">Presta Prenda / prestaPrenda</td><td class="term-note" contenteditable="false">Logo separado — nombre oficial del producto</td><td style="width:32px;padding:4px"><button class="del-btn" style="display:none" onclick="this.closest('tr').remove()">×</button></td></tr>
+            <tr><td class="term-use" contenteditable="false">Inmueble</td><td class="term-avoid" contenteditable="false">Propiedad / bien raíz</td><td class="term-note" contenteditable="false">Término consistente en todo el flujo</td><td style="width:32px;padding:4px"><button class="del-btn" style="display:none" onclick="this.closest('tr').remove()">×</button></td></tr>
+            <tr><td class="term-use" contenteditable="false">Pre oferta</td><td class="term-avoid" contenteditable="false">Cotización / aprobación</td><td class="term-note" contenteditable="false">Aún no es un préstamo confirmado</td><td style="width:32px;padding:4px"><button class="del-btn" style="display:none" onclick="this.closest('tr').remove()">×</button></td></tr>
+            <tr><td class="term-use" contenteditable="false">Inicia tu cotización</td><td class="term-avoid" contenteditable="false">Solicita tu préstamo</td><td class="term-note" contenteditable="false">CTA principal en landing — validado con stakeholders</td><td style="width:32px;padding:4px"><button class="del-btn" style="display:none" onclick="this.closest('tr').remove()">×</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="add-row" id="add-glosario-row">
+        <input class="add-input" id="in-glos-usar" placeholder="Término correcto..."/>
+        <input class="add-input" id="in-glos-evitar" placeholder="Evitar..."/>
+        <input class="add-input" id="in-glos-nota" placeholder="Nota..."/>
+        <button class="add-action" onclick="addGlosario()">+ Agregar</button>
+      </div>
+    </div>
+
+    <!-- S6 ACUERDOS -->
+    <div class="section" id="s-acuerdos">
+      <div class="section-hdr">
+        <div class="section-label">6 · Acuerdos estructurales <span class="section-count">Katia Vilorio — PO</span></div>
+        <span class="section-ts" contenteditable="false">Actualizado: abril 2026 · Katia Vilorio</span>
+      </div>
+      <p class="note">Solo acuerdos que sobreviven cambios de equipo. Los coyunturales se gestionan directamente con Katia.</p>
+      <div class="list-card" id="acuerdos-list">
+        <div class="ag-item"><div class="ag-bar" style="background:#22A04B"></div><div class="ag-body"><div class="ag-title" contenteditable="false">Design System PrestaPrenda 2.0 <span class="badge b-green status-badge">Acordado</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green" selected>Acordado</option><option value="b-amber">Pendiente</option></select></div><div class="ag-detail" contenteditable="false">No crear componentes ad-hoc sin aval de Katia. Los inputs del domicilio están en el DS anterior — homologar en siguiente iteración con Karla Hernández.</div></div><button class="del-btn" onclick="this.closest('.ag-item').remove()">×</button></div>
+        <div class="ag-item"><div class="ag-bar" style="background:#22A04B"></div><div class="ag-body"><div class="ag-title" contenteditable="false">Logo PrestaPrenda separado <span class="badge b-green status-badge">Acordado</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green" selected>Acordado</option><option value="b-amber">Pendiente</option></select></div><div class="ag-detail" contenteditable="false">Siempre palabras separadas. No usar versión junta. Ya actualizado en toda la experiencia digital.</div></div><button class="del-btn" onclick="this.closest('.ag-item').remove()">×</button></div>
+        <div class="ag-item"><div class="ag-bar" style="background:#22A04B"></div><div class="ag-body"><div class="ag-title" contenteditable="false">CAT: 30% sin IVA <span class="badge b-green status-badge">Acordado</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green" selected>Acordado</option><option value="b-amber">Pendiente</option></select></div><div class="ag-detail" contenteditable="false">CAT correcto confirmado por Katia: 30% sin IVA. Si aparece 34% en alguna pantalla es un error — corregir.</div></div><button class="del-btn" onclick="this.closest('.ag-item').remove()">×</button></div>
+        <div class="ag-item"><div class="ag-bar" style="background:#22A04B"></div><div class="ag-body"><div class="ag-title" contenteditable="false">Depósito: 28 días desde firma ante notario <span class="badge b-green status-badge">Acordado</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green" selected>Acordado</option><option value="b-amber">Pendiente</option></select></div><div class="ag-detail" contenteditable="false">Plazo desde que se firma y surte el contrato ante notario. El contrato menciona 72hrs — se refiere a otro momento del proceso.</div></div><button class="del-btn" onclick="this.closest('.ag-item').remove()">×</button></div>
+        <div class="ag-item"><div class="ag-bar" style="background:#C2620A"></div><div class="ag-body"><div class="ag-title" contenteditable="false">Límite de caracteres en nombre (máx 15) <span class="badge b-amber status-badge">Pendiente</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green">Acordado</option><option value="b-amber" selected>Pendiente</option></select></div><div class="ag-detail" contenteditable="false">Para compatibilidad con templates WhatsApp. No implementado. Pendiente con Diana Fajardo y Francisca Cabrera.</div></div><button class="del-btn" onclick="this.closest('.ag-item').remove()">×</button></div>
+        <div class="ag-item"><div class="ag-bar" style="background:#C2620A"></div><div class="ag-body"><div class="ag-title" contenteditable="false">Reenganche WA — frecuencia <span class="badge b-amber status-badge">Pendiente</span><select class="status-select" onchange="updateStatus(this)"><option value="b-green">Acordado</option><option value="b-amber" selected>Pendiente</option></select></div><div class="ag-detail" contenteditable="false">Secuencia propuesta: 1hr · 24hrs · 7 · 14 · 21 · 28 días. Pendiente de requerimiento de originación. No detonar desde cotizador hasta liberación.</div></div><button class="del-btn" onclick="this.closest('.ag-item').remove()">×</button></div>
+      </div>
+      <div class="add-row" id="add-acuerdo-row">
+        <input class="add-input" id="in-ag-titulo" placeholder="Título del acuerdo..."/>
+        <select class="add-select" id="in-ag-status"><option value="b-green">Acordado</option><option value="b-amber">Pendiente</option></select>
+        <button class="add-action" onclick="addAcuerdo()">+ Agregar acuerdo</button>
+      </div>
+    </div>
+
+    <!-- S7 BACKLOG -->
+    <div class="section" id="s-backlog">
+      <div class="section-hdr">
+        <div class="section-label">7 · Backlog de UX <span class="section-count" id="count-backlog">5</span></div>
+        <span class="section-ts" contenteditable="false">Actualizado: abril 2026 · Yazme González</span>
+      </div>
+      <p class="note">Deuda de diseño prioritaria — independiente del roadmap. Máx 5 items activos. Validar con Katia antes de atacar.</p>
+      <div class="list-card" id="backlog-list">
+        <div class="task-row"><div class="pdot" style="background:#D44C4C"></div><span class="task-text" contenteditable="false">Homologar inputs del domicilio al Design System PrestaPrenda 2.0</span><span class="task-type b-purple badge">UX</span><div class="task-check" onclick="this.classList.toggle('done');this.textContent=this.classList.contains('done')?'✓':''"></div><button class="del-btn" onclick="removeTask(this)">×</button></div>
+        <div class="task-row"><div class="pdot" style="background:#D44C4C"></div><span class="task-text" contenteditable="false">Corregir inconsistencia de naranja en cards de testimonios</span><span class="task-type b-purple badge">UX</span><div class="task-check" onclick="this.classList.toggle('done');this.textContent=this.classList.contains('done')?'✓':''"></div><button class="del-btn" onclick="removeTask(this)">×</button></div>
+        <div class="task-row"><div class="pdot" style="background:#C2620A"></div><span class="task-text" contenteditable="false">Documentar flujo de Simulador — pendiente de sesión con Yazme</span><span class="task-type b-purple badge">UX</span><div class="task-check" onclick="this.classList.toggle('done');this.textContent=this.classList.contains('done')?'✓':''"></div><button class="del-btn" onclick="removeTask(this)">×</button></div>
+        <div class="task-row"><div class="pdot" style="background:#C2620A"></div><span class="task-text" contenteditable="false">Documentar flujo Avalúo + Oferta final — espera requerimiento originación</span><span class="task-type b-blue badge">Tech</span><div class="task-check" onclick="this.classList.toggle('done');this.textContent=this.classList.contains('done')?'✓':''"></div><button class="del-btn" onclick="removeTask(this)">×</button></div>
+        <div class="task-row"><div class="pdot" style="background:#22A04B"></div><span class="task-text" contenteditable="false">Definir mensajes de error genéricos del cotizador</span><span class="task-type b-green badge">Content</span><div class="task-check" onclick="this.classList.toggle('done');this.textContent=this.classList.contains('done')?'✓':''"></div><button class="del-btn" onclick="removeTask(this)">×</button></div>
+      </div>
+      <div class="add-row" id="add-backlog-row">
+        <input class="add-input" id="in-task-texto" placeholder="Nueva tarea de UX..."/>
+        <select class="add-select" id="in-task-prio"><option value="#D44C4C">Alta</option><option value="#C2620A" selected>Media</option><option value="#22A04B">Baja</option></select>
+        <select class="add-select" id="in-task-tipo"><option value="b-purple">UX</option><option value="b-blue">Tech</option><option value="b-green">Content</option></select>
+        <button class="add-action" onclick="addTask()">+ Agregar tarea</button>
+      </div>
+    </div>
+
+    <!-- S8 CONTACTOS -->
+    <div class="section" id="s-contactos">
+      <div class="section-hdr">
+        <div class="section-label">8 · Contactos y responsables <span class="section-count" id="count-contactos">8</span></div>
+        <span class="section-ts" contenteditable="false">Actualizado: abril 2026 · Yazme González</span>
+      </div>
+      <p class="note">Con rotación frecuente de equipo, esta sección es crítica. Actualizar cuando cambien responsables.</p>
+      <div class="g2" id="contactos-grid">
+        <div class="person-card"><button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-contactos')">×</button><div class="person-top"><div class="avatar" style="background:#FFD6D6;color:#D44C4C">KV</div><div><div class="person-name" contenteditable="false">Katia Sulany Vilorio Delgadillo</div><div class="person-role" contenteditable="false">Product Owner</div></div></div><div class="person-divider"></div><div class="person-rows"><div class="person-row"><span class="person-key">Área</span><span class="person-val" contenteditable="false">Producto</span></div><div class="person-row"><span class="person-key">Preguntas</span><span class="person-val" contenteditable="false">Reglas de negocio, decisiones de producto, validaciones, prioridades</span></div></div></div>
+        <div class="person-card"><button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-contactos')">×</button><div class="person-top"><div class="avatar" style="background:#E8D6FF;color:#8B5CF6">YG</div><div><div class="person-name" contenteditable="false">Yazme Guadalupe González Guerra</div><div class="person-role" contenteditable="false">UX / Design Lead</div></div></div><div class="person-divider"></div><div class="person-rows"><div class="person-row"><span class="person-key">Área</span><span class="person-val" contenteditable="false">Diseño</span></div><div class="person-row"><span class="person-key">Preguntas</span><span class="person-val" contenteditable="false">Flujos, prototipo Figma, alineación visual, criterios de diseño</span></div></div></div>
+        <div class="person-card"><button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-contactos')">×</button><div class="person-top"><div class="avatar" style="background:#D6EEFF;color:#2563EB">DL</div><div><div class="person-name" contenteditable="false">Diana Lilia Fajardo</div><div class="person-role" contenteditable="false">Integración técnica</div></div></div><div class="person-divider"></div><div class="person-rows"><div class="person-row"><span class="person-key">Área</span><span class="person-val" contenteditable="false">Tecnología</span></div><div class="person-row"><span class="person-key">Preguntas</span><span class="person-val" contenteditable="false">Mensajería WhatsApp, integraciones, Yalo, límites de templates</span></div></div></div>
+        <div class="person-card"><button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-contactos')">×</button><div class="person-top"><div class="avatar" style="background:#D6F5E0;color:#22A04B">FC</div><div><div class="person-name" contenteditable="false">Francisca Cabrera Romano</div><div class="person-role" contenteditable="false">Desarrollo técnico</div></div></div><div class="person-divider"></div><div class="person-rows"><div class="person-row"><span class="person-key">Área</span><span class="person-val" contenteditable="false">Tecnología</span></div><div class="person-row"><span class="person-key">Preguntas</span><span class="person-val" contenteditable="false">Implementación técnica, restricciones de front, validaciones</span></div></div></div>
+        <div class="person-card"><button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-contactos')">×</button><div class="person-top"><div class="avatar" style="background:#FFE8CC;color:#C2620A">KH</div><div><div class="person-name" contenteditable="false">Karla Lizbeth Hernández</div><div class="person-role" contenteditable="false">Desarrollo front / DS</div></div></div><div class="person-divider"></div><div class="person-rows"><div class="person-row"><span class="person-key">Área</span><span class="person-val" contenteditable="false">Tecnología</span></div><div class="person-row"><span class="person-key">Preguntas</span><span class="person-val" contenteditable="false">Estados de inputs, comportamiento DS PrestaPrenda 2.0, homologación</span></div></div></div>
+        <div class="person-card"><button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-contactos')">×</button><div class="person-top"><div class="avatar" style="background:#F4F4F4;color:#9B9B9B">RG</div><div><div class="person-name" contenteditable="false">Rodolfo Galdámez</div><div class="person-role" contenteditable="false">Desarrollo back</div></div></div><div class="person-divider"></div><div class="person-rows"><div class="person-row"><span class="person-key">Área</span><span class="person-val" contenteditable="false">Tecnología</span></div><div class="person-row"><span class="person-key">Preguntas</span><span class="person-val" contenteditable="false">Back, integraciones con originación, catálogos, parámetros del sistema</span></div></div></div>
+        <div class="person-card"><button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-contactos')">×</button><div class="person-top"><div class="avatar" style="background:#D6EEFF;color:#2563EB">CY</div><div><div class="person-name" contenteditable="false">Christian (Yalo)</div><div class="person-role" contenteditable="false">Proveedor — Mensajería WA</div></div></div><div class="person-divider"></div><div class="person-rows"><div class="person-row"><span class="person-key">Área</span><span class="person-val" contenteditable="false">Proveedor externo</span></div><div class="person-row"><span class="person-key">Preguntas</span><span class="person-val" contenteditable="false">OTP WhatsApp, templates, URLs de mensajes, botones beta de Meta</span></div></div></div>
+        <div class="person-card"><button class="del-btn card-del" onclick="removeCard(this.closest('.person-card'),'count-contactos')">×</button><div class="person-top"><div class="avatar" style="background:#FFD6D6;color:#D44C4C">TC</div><div><div class="person-name" contenteditable="false">Tania Jhissel Cruz Guevara</div><div class="person-role" contenteditable="false">Equipo de producto</div></div></div><div class="person-divider"></div><div class="person-rows"><div class="person-row"><span class="person-key">Área</span><span class="person-val" contenteditable="false">Producto</span></div><div class="person-row"><span class="person-key">Preguntas</span><span class="person-val" contenteditable="false">Sesiones de alineación, validaciones de flujo, coordinación</span></div></div></div>
+      </div>
+      <div class="add-row" id="add-contacto-row">
+        <input class="add-input" id="in-ct-nombre" placeholder="Nombre completo..."/>
+        <input class="add-input" id="in-ct-rol" placeholder="Rol / cargo..."/>
+        <input class="add-input" id="in-ct-area" placeholder="Área..."/>
+        <button class="add-action" onclick="addContacto()">+ Agregar contacto</button>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="doc-footer">
+      <div>
+        <div class="progress-label">Secciones documentadas: 8/8</div>
+        <div class="progress-bar">
+          <div class="pb pb-on"></div><div class="pb pb-on"></div><div class="pb pb-on"></div><div class="pb pb-on"></div>
+          <div class="pb pb-on"></div><div class="pb pb-on"></div><div class="pb pb-on"></div><div class="pb pb-on"></div>
+        </div>
+      </div>
+      <div class="footer-btns">
+        <button class="foot-btn" onclick="copyLink()">🔗 Copiar link</button>
+        <button class="foot-btn" onclick="window.print()">↓ Exportar / Imprimir</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">🔒 Acceso de edición</div>
+    <div class="modal-desc">Ingresa la contraseña para activar el modo edición. Los cambios guardados serán visibles para todo el equipo.</div>
+    <input class="modal-input" id="modal-pwd" type="password" placeholder="Contraseña..." onkeydown="if(event.key==='Enter')confirmPassword()"/>
+    <div class="modal-error" id="modal-error">Contraseña incorrecta. Intenta de nuevo.</div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-confirm" onclick="confirmPassword()">Acceder</button>
+    </div>
+  </div>
+</div>
+
+<div class="notify" id="notify"></div>
+
+<script>
+// ════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════
+var EDIT_PASSWORD = 'uxcj2026';   // cambia esto
+var KV_API        = '/api/handoff';
+var USE_KV        = true;         // false = solo localStorage
+// ════════════════════════════════════════════════
+
+var editing = false;
+var kvAvailable = false;
+
+// ── PASSWORD MODAL ─────────────────────────────
+function requestEdit() {
+  if (editing) { toggleEdit(); return; }
+  document.getElementById('modal-overlay').classList.add('show');
+  setTimeout(function(){ document.getElementById('modal-pwd').focus(); }, 100);
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+  document.getElementById('modal-pwd').value = '';
+  document.getElementById('modal-error').classList.remove('show');
+  document.getElementById('modal-pwd').classList.remove('error');
+}
+function confirmPassword() {
+  var pwd   = document.getElementById('modal-pwd').value;
+  var input = document.getElementById('modal-pwd');
+  var err   = document.getElementById('modal-error');
+  if (pwd === EDIT_PASSWORD) {
+    closeModal(); toggleEdit();
+  } else {
+    input.classList.add('error'); err.classList.add('show');
+    input.value = '';
+    setTimeout(function(){ input.classList.remove('error'); err.classList.remove('show'); }, 2500);
+  }
+}
+
+// ── EDIT MODE ─────────────────────────────────
+function toggleEdit() {
+  editing = !editing;
+  var main    = document.getElementById('main');
+  var btn     = document.getElementById('toggle-edit-btn');
+  var saveBtn = document.getElementById('save-btn');
+  var dot     = document.getElementById('edit-dot');
+  var status  = document.getElementById('edit-status');
+  if (editing) {
+    main.classList.add('editing');
+    btn.classList.add('active');
+    btn.textContent = '✕ Salir de edición';
+    saveBtn.style.display = 'block';
+    dot.classList.add('on');
+    status.textContent = 'Modo edición activo';
+    document.querySelectorAll('[contenteditable]').forEach(function(el){ el.contentEditable='true'; });
+    document.querySelectorAll('.status-select').forEach(function(el){ el.style.display='inline-flex'; });
+    document.querySelectorAll('.status-badge').forEach(function(el){ el.style.display='none'; });
+    document.querySelectorAll('.glossary-table .del-btn').forEach(function(el){ el.style.display='flex'; });
+    notify('✏️ Modo edición activo — haz clic en cualquier texto');
+  } else {
+    main.classList.remove('editing');
+    btn.classList.remove('active');
+    btn.textContent = '✏️ Editar';
+    saveBtn.style.display = 'none';
+    dot.classList.remove('on');
+    status.textContent = 'Modo lectura';
+    document.querySelectorAll('[contenteditable]').forEach(function(el){ el.contentEditable='false'; });
+    document.querySelectorAll('.status-select').forEach(function(el){ el.style.display='none'; });
+    document.querySelectorAll('.status-badge').forEach(function(el){ el.style.display=''; });
+    document.querySelectorAll('.glossary-table .del-btn').forEach(function(el){ el.style.display='none'; });
+  }
+}
+
+// ── SAVE ──────────────────────────────────────
+function saveContent() {
+  var badge  = document.getElementById('kv-badge');
+  var saved  = document.getElementById('last-saved');
+  badge.className = 'kv-badge kv-saving';
+  badge.textContent = '⟳ Guardando...';
+  var payload = { html: document.getElementById('main').innerHTML, ts: Date.now() };
+  try { localStorage.setItem('cj-handoff-v1', JSON.stringify(payload)); } catch(e){}
+
+  if (USE_KV && kvAvailable) {
+    fetch(KV_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(){
+      badge.className = 'kv-badge kv-synced';
+      badge.textContent = '✓ Sincronizado';
+      var d = new Date(payload.ts);
+      saved.textContent = 'Guardado ' + d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+      saved.style.display = 'inline';
+      toggleEdit();
+      notify('✓ Guardado — todos verán los cambios al recargar');
+    })
+    .catch(function(){
+      badge.className = 'kv-badge kv-local';
+      badge.textContent = '⚠ Solo local';
+      toggleEdit();
+      notify('⚠ Sin conexión a servidor — guardado solo en este navegador');
+    });
+  } else {
+    badge.className = 'kv-badge kv-local';
+    badge.textContent = '💾 Local';
+    var d = new Date(payload.ts);
+    saved.textContent = 'Guardado ' + d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+    saved.style.display = 'inline';
+    toggleEdit();
+    notify('✓ Guardado en este navegador');
+  }
+}
+
+// ── LOAD ──────────────────────────────────────
+function loadContent() {
+  var badge = document.getElementById('kv-badge');
+  if (USE_KV) {
+    fetch(KV_API)
+    .then(function(r){ if(!r.ok) throw new Error('no kv'); return r.json(); })
+    .then(function(data){
+      kvAvailable = true;
+      if (data && data.html) {
+        document.getElementById('main').innerHTML = data.html;
+        rebindEvents();
+        badge.className = 'kv-badge kv-synced';
+        badge.textContent = '✓ Sincronizado';
+        if (data.ts) {
+          var d = new Date(data.ts);
+          var el = document.getElementById('last-saved');
+          if (el) { el.textContent = 'Últ. guardado: '+d.toLocaleDateString('es-MX',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}); el.style.display='inline'; }
+        }
+      } else {
+        badge.className = 'kv-badge kv-synced';
+        badge.textContent = '✓ Conectado';
+        tryLocal();
+      }
+    })
+    .catch(function(){
+      kvAvailable = false;
+      badge.className = 'kv-badge kv-local';
+      badge.textContent = '💾 Sin servidor';
+      tryLocal();
+    });
+  } else {
+    badge.className = 'kv-badge kv-local';
+    badge.textContent = '💾 Local';
+    tryLocal();
+  }
+}
+
+function tryLocal() {
+  try {
+    var raw = localStorage.getItem('cj-handoff-v1');
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    if (data && data.html) {
+      document.getElementById('main').innerHTML = data.html;
+      rebindEvents();
+      var badge = document.getElementById('kv-badge');
+      badge.className = 'kv-badge kv-local';
+      badge.textContent = '💾 Versión local';
+      notify('Restaurado desde tu navegador');
+    }
+  } catch(e) {}
+}
+
+function rebindEvents() {
+  document.querySelectorAll('.task-check').forEach(function(el){
+    el.onclick = function(){ this.classList.toggle('done'); this.textContent = this.classList.contains('done')?'✓':''; };
+  });
+  document.querySelectorAll('.status-select').forEach(function(el){
+    el.onchange = function(){ updateStatus(this); };
+  });
+}
+
+loadContent();
+
+// ── STATUS SELECT ──────────────────────────────
+function updateStatus(select) {
+  var badge   = select.previousElementSibling;
+  var labels  = { 'b-green':'Acordado','b-amber':'Pendiente','b-blue':'En revisión' };
+  var colors  = { 'b-green':'#22A04B', 'b-amber':'#C2620A',  'b-blue':'#2563EB' };
+  var val = select.value;
+  badge.className = 'badge '+val+' status-badge';
+  badge.textContent = labels[val] || val;
+  var parent = select.closest('.ag-item');
+  if (parent){ var bar=parent.querySelector('.ag-bar'); if(bar) bar.style.background=colors[val]||'#ccc'; }
+}
+
+// ── SCROLL NAV ────────────────────────────────
+function scrollToSection(id){ var el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
+
+// ── RESET ─────────────────────────────────────
+function resetStorage() {
+  if (!confirm('¿Restaurar el contenido original? Se perderán todos los cambios guardados.')) return;
+  localStorage.removeItem('cj-handoff-v1');
+  if (USE_KV && kvAvailable) {
+    fetch(KV_API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({html:null,ts:Date.now()}) })
+    .finally(function(){ location.reload(); });
+  } else { location.reload(); }
+}
+
+// ── ADD / REMOVE HELPERS ──────────────────────
+var avatarColors = [['#FFD6D6','#D44C4C'],['#E8D6FF','#8B5CF6'],['#D6EEFF','#2563EB'],['#D6F5E0','#22A04B'],['#FFE8CC','#C2620A'],['#F4F4F4','#9B9B9B']];
+function getAvatarColor(i){ return avatarColors[i%avatarColors.length]; }
+function initials(n){ var w=(n||'').trim().split(/\s+/); return w.length>=2?(w[0][0]+w[1][0]).toUpperCase():(w[0]||'?').substring(0,2).toUpperCase(); }
+
+function addPerfil(){
+  var nombre=document.getElementById('in-perfil-nombre').value.trim(), rol=document.getElementById('in-perfil-rol').value.trim();
+  if(!nombre)return;
+  var grid=document.getElementById('perfiles-grid'),c=getAvatarColor(grid.children.length),card=document.createElement('div');
+  card.className='person-card';
+  card.innerHTML='<button class="del-btn card-del" onclick="removeCard(this.closest(\'.person-card\'),\'count-perfiles\')">×</button>'
+    +'<div class="person-top"><div class="avatar" style="background:'+c[0]+';color:'+c[1]+'">'+initials(nombre)+'</div>'
+    +'<div><div class="person-name" contenteditable="true">'+nombre+'</div><div class="person-role" contenteditable="true">'+rol+'</div></div></div>'
+    +'<div class="person-divider"></div><div class="person-rows">'
+    +'<div class="person-row"><span class="person-key">Necesidad</span><span class="person-val" contenteditable="true">—</span></div>'
+    +'<div class="person-row"><span class="person-key">Cita real</span><span class="person-val" contenteditable="true">—</span></div>'
+    +'<div class="person-row"><span class="person-key">Inmueble</span><span class="person-val" contenteditable="true">—</span></div></div>';
+  grid.appendChild(card); updateCount('count-perfiles',grid);
+  document.getElementById('in-perfil-nombre').value=''; document.getElementById('in-perfil-rol').value='';
+}
+
+function addResearch(){
+  var titulo=document.getElementById('in-research-titulo').value.trim(), fecha=document.getElementById('in-research-fecha').value.trim()||'—';
+  var tipo=document.getElementById('in-research-tipo'); if(!titulo)return;
+  var list=document.getElementById('research-list'),row=document.createElement('div'); row.className='list-row';
+  row.innerHTML='<span class="badge '+tipo.value+'">'+tipo.options[tipo.selectedIndex].text+'</span>'
+    +'<span class="lr-title" contenteditable="true">'+titulo+'</span><span class="lr-sub" contenteditable="true">'+fecha+'</span>'
+    +'<button class="del-btn" onclick="this.closest(\'.list-row\').remove()">×</button>';
+  list.appendChild(row); document.getElementById('in-research-titulo').value=''; document.getElementById('in-research-fecha').value='';
+}
+
+function addFlujo(){
+  var nombre=document.getElementById('in-flujo-nombre').value.trim(), sel=document.getElementById('in-flujo-status'); if(!nombre)return;
+  var card=document.createElement('div'); card.className='card'; card.style.position='relative';
+  card.innerHTML='<button class="del-btn card-del" onclick="this.closest(\'.card\').remove()">×</button>'
+    +'<div style="font-size:13px;font-weight:600;color:var(--tp);margin-bottom:6px" contenteditable="true">'+nombre+'</div>'
+    +'<span class="badge '+sel.value+' status-badge">'+sel.options[sel.selectedIndex].text+'</span>'
+    +'<select class="status-select" onchange="updateStatus(this)">'
+    +'<option value="b-green"'+(sel.value==='b-green'?' selected':'')+'>Documentado</option>'
+    +'<option value="b-blue"'+(sel.value==='b-blue'?' selected':'')+'>En revisión</option>'
+    +'<option value="b-amber"'+(sel.value==='b-amber'?' selected':'')+'>Pendiente</option></select>';
+  document.getElementById('flujos-grid').appendChild(card); document.getElementById('in-flujo-nombre').value='';
+}
+
+function addGlosario(){
+  var usar=document.getElementById('in-glos-usar').value.trim(), evitar=document.getElementById('in-glos-evitar').value.trim(), nota=document.getElementById('in-glos-nota').value.trim();
+  if(!usar)return;
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td class="term-use" contenteditable="true">'+usar+'</td><td class="term-avoid" contenteditable="true">'+evitar+'</td><td class="term-note" contenteditable="true">'+nota+'</td>'
+    +'<td style="width:32px;padding:4px"><button class="del-btn" style="display:flex" onclick="this.closest(\'tr\').remove()">×</button></td>';
+  document.getElementById('glossary-body').appendChild(tr);
+  ['in-glos-usar','in-glos-evitar','in-glos-nota'].forEach(function(id){document.getElementById(id).value='';});
+}
+
+function addAcuerdo(){
+  var titulo=document.getElementById('in-ag-titulo').value.trim(), sel=document.getElementById('in-ag-status');
+  var colors={'b-green':'#22A04B','b-amber':'#C2620A'}; if(!titulo)return;
+  var item=document.createElement('div'); item.className='ag-item';
+  item.innerHTML='<div class="ag-bar" style="background:'+colors[sel.value]+'"></div>'
+    +'<div class="ag-body"><div class="ag-title" contenteditable="true">'+titulo
+    +' <span class="badge '+sel.value+' status-badge">'+sel.options[sel.selectedIndex].text+'</span>'
+    +'<select class="status-select" onchange="updateStatus(this)">'
+    +'<option value="b-green"'+(sel.value==='b-green'?' selected':'')+'>Acordado</option>'
+    +'<option value="b-amber"'+(sel.value==='b-amber'?' selected':'')+'>Pendiente</option></select></div>'
+    +'<div class="ag-detail" contenteditable="true">Agrega el detalle...</div></div>'
+    +'<button class="del-btn" onclick="this.closest(\'.ag-item\').remove()">×</button>';
+  document.getElementById('acuerdos-list').appendChild(item); document.getElementById('in-ag-titulo').value='';
+}
+
+function addTask(){
+  var texto=document.getElementById('in-task-texto').value.trim(), prio=document.getElementById('in-task-prio').value;
+  var tipoSel=document.getElementById('in-task-tipo'); if(!texto)return;
+  var list=document.getElementById('backlog-list');
+  if(list.querySelectorAll('.task-row').length>=5){notify('Límite alcanzado — máx 5 items');return;}
+  var row=document.createElement('div'); row.className='task-row';
+  row.innerHTML='<div class="pdot" style="background:'+prio+'"></div>'
+    +'<span class="task-text" contenteditable="true">'+texto+'</span>'
+    +'<span class="task-type '+tipoSel.value+' badge">'+tipoSel.options[tipoSel.selectedIndex].text+'</span>'
+    +'<div class="task-check" onclick="this.classList.toggle(\'done\');this.textContent=this.classList.contains(\'done\')?\'✓\':\'\'"></div>'
+    +'<button class="del-btn" onclick="removeTask(this)">×</button>';
+  list.appendChild(row); updateCount('count-backlog',list,'.task-row'); document.getElementById('in-task-texto').value='';
+}
+
+function addContacto(){
+  var nombre=document.getElementById('in-ct-nombre').value.trim(), rol=document.getElementById('in-ct-rol').value.trim(), area=document.getElementById('in-ct-area').value.trim();
+  if(!nombre)return;
+  var grid=document.getElementById('contactos-grid'),c=getAvatarColor(grid.children.length),card=document.createElement('div');
+  card.className='person-card';
+  card.innerHTML='<button class="del-btn card-del" onclick="removeCard(this.closest(\'.person-card\'),\'count-contactos\')">×</button>'
+    +'<div class="person-top"><div class="avatar" style="background:'+c[0]+';color:'+c[1]+'">'+initials(nombre)+'</div>'
+    +'<div><div class="person-name" contenteditable="true">'+nombre+'</div><div class="person-role" contenteditable="true">'+rol+'</div></div></div>'
+    +'<div class="person-divider"></div><div class="person-rows">'
+    +'<div class="person-row"><span class="person-key">Área</span><span class="person-val" contenteditable="true">'+(area||'—')+'</span></div>'
+    +'<div class="person-row"><span class="person-key">Preguntas</span><span class="person-val" contenteditable="true">—</span></div></div>';
+  grid.appendChild(card); updateCount('count-contactos',grid);
+  ['in-ct-nombre','in-ct-rol','in-ct-area'].forEach(function(id){document.getElementById(id).value='';});
+}
+
+function removeCard(card,countId){ var grid=card.parentElement; card.remove(); updateCount(countId,grid); }
+function removeTask(btn){ var row=btn.closest('.task-row'),list=row.parentElement; row.remove(); updateCount('count-backlog',list,'.task-row'); }
+function updateCount(countId,container,selector){ var el=document.getElementById(countId); if(el) el.textContent=container.querySelectorAll(selector||':scope > *').length; }
+
+function copyLink(){
+  navigator.clipboard.writeText(window.location.href).then(function(){ notify('🔗 Link copiado'); }).catch(function(){ notify('Abre desde un servidor para copiar el link'); });
+}
+
+function notify(msg){ var el=document.getElementById('notify'); el.textContent=msg; el.classList.add('show'); setTimeout(function(){el.classList.remove('show');},3000); }
+</script>
+</body>
+</html>
