@@ -49,8 +49,8 @@ export function ContextoSectionView({ data, stats }: { data: ContextoSection; st
       </div>
 
       <div className="grid gap-2 mb-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}>
-        {stats.map((s) => (
-          <div key={s.id} className="bg-gray-50 rounded-[10px] px-3.5 py-3">
+      {stats.map((s, i) => (
+  <div key={`${s.label}-${i}`} className="bg-gray-50 rounded-[10px] px-3.5 py-3">
             <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium m-0 mb-1">{s.label}</p>
             <p className="text-lg font-bold text-gray-900 m-0">
               {s.value}
