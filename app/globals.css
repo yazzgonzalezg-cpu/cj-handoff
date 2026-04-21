@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #7C3AED;
+  --color-primary-hover: #6D28D9;
+  --color-bg-page: #F5F5F7;
+  --color-bg-card: #FFFFFF;
+  --color-border: #E8E8ED;
+  --color-border-soft: #F0F0F3;
+  --color-text-primary: #14142B;
+  --color-text-secondary: #5A5A72;
+  --color-text-muted: #8E8EA0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+}
