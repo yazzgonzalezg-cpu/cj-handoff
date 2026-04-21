@@ -153,7 +153,7 @@ export async function loadProductData(productId: string): Promise<FullProductDat
     usuarios: usuarios.data ? mapUsuarios(usuarios.data) : null,
     arquetipos: (arquetipos.data || []).map(mapArquetipo),
     investigacion: investigacion.data ? mapInvestigacion(investigacion.data) : null,
-    environments: envs.data ? { productId: envs.data.product_id, lastRevision: envs.data.last_revision, status: envs.data.status } : null,
+    environments: envs.data ? { productId: envs.data.product_id, lastRevision: envs.data.last_revision, status: envs.data.status, environments: [] } : null,
     environmentsList: (envList.data || []).map(mapEnvironment),
     acuerdos: acuerdosS.data ? { productId: acuerdosS.data.product_id, intro: acuerdosS.data.intro, lastRevision: acuerdosS.data.last_revision, status: acuerdosS.data.status } : null,
     acuerdosList: (acuerdosL.data || []).map(mapAcuerdo),
