@@ -155,7 +155,7 @@ export async function loadProductData(productId: string): Promise<FullProductDat
     investigacion: investigacion.data ? mapInvestigacion(investigacion.data) : null,
     environments: envs.data ? { productId: envs.data.product_id, lastRevision: envs.data.last_revision, status: envs.data.status, environments: [] } : null,
     environmentsList: (envList.data || []).map(mapEnvironment),
-    acuerdos: acuerdosS.data ? { productId: acuerdosS.data.product_id, intro: acuerdosS.data.intro, lastRevision: acuerdosS.data.last_revision, status: acuerdosS.data.status } : null,
+    acuerdos: acuerdosS.data ? { productId: acuerdosS.data.product_id, intro: acuerdosS.data.intro, lastRevision: acuerdosS.data.last_revision, status: acuerdosS.data.status, acuerdos: [] } : null,
     acuerdosList: (acuerdosL.data || []).map(mapAcuerdo),
     writing: writing.data ? { productId: writing.data.product_id, tonosPorContexto: [], glosario: [], examples: [], consideraciones: writing.data.consideraciones, lastRevision: writing.data.last_revision, status: writing.data.status } : null,
     tonos: (tonos.data || []).map((r: any) => ({ id: r.id, label: r.label, description: r.description, sortOrder: r.sort_order })),
