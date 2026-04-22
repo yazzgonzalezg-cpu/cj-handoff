@@ -161,7 +161,7 @@ export async function loadProductData(productId: string): Promise<FullProductDat
     tonos: (tonos.data || []).map((r: any) => ({ id: r.id, label: r.label, description: r.description, sortOrder: r.sort_order })),
     glosario: (glosario.data || []).map((r: any) => ({ id: r.id, usar: r.usar, evitar: r.evitar, nota: r.nota, sortOrder: r.sort_order })),
     examples: (examples.data || []).map((r: any) => ({ id: r.id, context: r.context, copy: r.copy, sortOrder: r.sort_order })),
-    equipo: equipo.data ? { productId: equipo.data.product_id, lastRevision: equipo.data.last_revision, status: equipo.data.status } : null,
+    equipo: equipo.data ? { productId: equipo.data.product_id, lastRevision: equipo.data.last_revision, status: equipo.data.status, responsables: [] } : null,
     responsables: (responsables.data || []).map(mapResponsable),
   };
 }
