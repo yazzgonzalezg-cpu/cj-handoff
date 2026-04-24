@@ -99,12 +99,27 @@ export function UsuariosSectionView({ data, arquetipos }: { data: UsuariosSectio
               <p className="text-xs text-gray-500 m-0">TODO: agregar perfil</p>
             ) : (
               <>
-                <p className="text-xs text-gray-600 leading-relaxed m-0 mb-1">
+                {a.perfil && (
+                  <p className="text-xs text-gray-600 leading-relaxed m-0 mb-1.5">
+                    <strong className="text-gray-900 font-medium">Perfil:</strong> {a.perfil}
+                  </p>
+                )}
+                <p className="text-xs text-gray-600 leading-relaxed m-0 mb-1.5">
                   <strong className="text-gray-900 font-medium">JTBD:</strong> {a.jtbd}
                 </p>
-                <p className="text-xs text-gray-600 leading-relaxed m-0">
+                <p className="text-xs text-gray-600 leading-relaxed m-0 mb-1.5">
                   <strong className="text-gray-900 font-medium">Dolor:</strong> {a.dolor}
                 </p>
+                {a.expectativa && (
+                  <p className="text-xs text-gray-600 leading-relaxed m-0 mb-1.5">
+                    <strong className="text-gray-900 font-medium">Expectativa:</strong> {a.expectativa}
+                  </p>
+                )}
+                {a.estilo && (
+                  <p className="text-xs text-gray-600 leading-relaxed m-0">
+                    <strong className="text-gray-900 font-medium">Estilo:</strong> {a.estilo}
+                  </p>
+                )}
               </>
             )}
           </div>
