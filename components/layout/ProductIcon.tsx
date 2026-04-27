@@ -40,6 +40,18 @@ export function ProductIcon({ iconKey, size = 16 }: { iconKey: ProductIconKey; s
       </svg>
     );
   }
+  
+  if (iconKey === 'car') {
+    return (
+      <svg {...common}>
+        <path d="M5 17h14" />
+        <circle cx="7" cy="17" r="2" />
+        <circle cx="17" cy="17" r="2" />
+        <path d="M3 17V9l2-4h12l3 4v8" />
+        <path d="M5 12h14" />
+      </svg>
+    );
+  }
 
   if (iconKey === 'phone') {
     return (
