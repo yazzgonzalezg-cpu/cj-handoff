@@ -18,7 +18,7 @@ export type SectionStatus = 'vigente' | 'por-revisar' | 'obsoleta';
 // ------------------------------------------------------------
 // Producto
 // ------------------------------------------------------------
-export type ProductIconKey = 'house' | 'grid' | 'phone' | 'custom';
+export type ProductIconKey = 'house' | 'grid' | 'phone' | 'car' | 'custom';
 
 export type Product = {
   id: string;
