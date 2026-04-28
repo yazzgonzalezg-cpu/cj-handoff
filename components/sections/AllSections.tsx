@@ -326,9 +326,13 @@ export function EquipoSectionView({ data, responsables }: { data: EquipoSection;
 }
 
 function EmailRow({ email }: { email: string }) {
+  const [copied, setCopied] = useState(false);
+
   const handleCopy = () => {
     if (email && navigator.clipboard) {
       navigator.clipboard.writeText(email);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -341,9 +345,13 @@ function EmailRow({ email }: { email: string }) {
       <span className="truncate flex-1 min-w-0" style={{ color: '#7C3AED' }}>{email}</span>
       <button
         onClick={handleCopy}
-        className="text-[10px] px-1.5 py-0.5 rounded-md bg-white border border-gray-200 text-gray-600 hover:bg-gray-100"
+        className={`text-[10px] px-1.5 py-0.5 rounded-md border transition-colors ${
+          copied
+            ? 'bg-green-50 border-green-300 text-green-700'
+            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-100'
+        }`}
       >
-        Copiar
+        {copied ? '✓ Copiado' : 'Copiar'}
       </button>
     </div>
   );
