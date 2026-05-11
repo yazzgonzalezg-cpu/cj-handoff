@@ -142,7 +142,7 @@ export default function HandoffPage() {
             {!loading && data && (
               <>
                 {data.contexto && (
-                  <ContextoSectionView data={data.contexto} stats={data.contextoStats} />
+                 <ContextoSectionView data={data.contexto} stats={data.contextoStats} environments={data.environmentsList} />
                 )}
                 {data.usuarios && (
                   <UsuariosSectionView data={data.usuarios} arquetipos={data.arquetipos} />
