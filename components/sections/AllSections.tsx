@@ -17,7 +17,7 @@ import type {
 // ============================================================
 // 01 · Contexto de negocio
 // ============================================================
-export function ContextoSectionView({ data, stats }: { data: ContextoSection; stats: ContextoStat[] }) {
+export function ContextoSectionView({ data, stats, environments }: { data: ContextoSection; stats: ContextoStat[]; environments?: Environment[] }) {
   return (
     <SectionCard number="01" title="Contexto de negocio" question="¿Por qué existe este producto?" lastRevision={data.lastRevision}>
       <div className="grid gap-2.5 mb-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
@@ -48,7 +48,6 @@ export function ContextoSectionView({ data, stats }: { data: ContextoSection; st
           />
         </div>
       </div>
-
       <div className="grid gap-2 mb-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}>
       {stats.map((s, i) => (
   <div key={`${s.label}-${i}`} className="bg-gray-50 rounded-[10px] px-3.5 py-3">
@@ -60,24 +59,41 @@ export function ContextoSectionView({ data, stats }: { data: ContextoSection; st
           </div>
         ))}
       </div>
-
-      <div className="bg-gray-50 rounded-[10px] px-4 py-3.5">
-        <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium m-0 mb-2">Respaldo y canal</p>
-        <EditableField
-          value={data.respaldoYCanal}
-          productId={data.productId}
-          table="contexto_sections"
-          entityType="contexto"
-          entityId={data.productId}
-          field="respaldo_y_canal"
-          multiline
-          className="text-sm text-gray-900 leading-relaxed"
-        />
-      </div>
+      {(() => {
+        const productionEnv = environments?.find((e) => e.type === 'production' && e.link);
+        if (!productionEnv) return null;
+        return (
+          <div
+            className="rounded-[12px] px-5 py-4 flex items-center justify-between gap-4 flex-wrap"
+            style={{ backgroundColor: '#F5F3FF', border: '1px solid #DDD6FE' }}
+          >
+            <div className="flex-1 min-w-[200px]">
+              <p className="text-[10px] uppercase tracking-wider font-medium m-0 mb-1" style={{ color: '#7C3AED' }}>
+                Producto en vivo
+              </p>
+              <p className="text-sm text-gray-900 leading-relaxed m-0">
+                Visita la versión productiva para ver cómo lo experimentan los usuarios hoy.
+              </p>
+            </div>
+            
+              href={productionEnv.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white px-4 py-2.5 rounded-lg text-[13px] font-medium no-underline whitespace-nowrap inline-flex items-center gap-2"
+              style={{ backgroundColor: '#7C3AED' }}
+            >
+              Abrir sitio
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 17L17 7" />
+                <path d="M7 7h10v10" />
+              </svg>
+            </a>
+          </div>
+        );
+      })()}
     </SectionCard>
   );
 }
-
 // ============================================================
 // 02 · Usuarios
 // ============================================================
