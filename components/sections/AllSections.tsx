@@ -75,7 +75,7 @@ export function ContextoSectionView({ data, stats, environments }: { data: Conte
                 Visita la versión productiva para ver cómo lo experimentan los usuarios hoy.
               </p>
             </div>
-            
+            <a
               href={productionEnv.link}
               target="_blank"
               rel="noopener noreferrer"
