@@ -193,10 +193,7 @@ export function EntornosSectionView({ data, environments }: { data: Environments
       <div className="grid gap-2.5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
         {environments.map((env) => (
           <div key={env.id} className="bg-gray-50 rounded-[10px] px-3.5 py-3">
-            <p className="text-[10px] uppercase tracking-wider font-medium m-0" style={{ color: envTagColors[env.type] }}>
-              ● {envLabels[env.type]}
-            </p>
-            <p className="text-[13px] font-bold text-gray-900 m-0 mt-1 mb-1.5">{env.name}</p>
+            <p className="text-[13px] font-bold text-gray-900 m-0 mb-1.5">{env.name}</p>
             <p className="text-[11px] text-gray-600 leading-relaxed m-0 mb-2">{env.purpose}</p>
             {env.link ? (
               <a href={env.link} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium" style={{ color: '#7C3AED' }}>
